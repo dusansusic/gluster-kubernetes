@@ -294,7 +294,7 @@ assign() {
 #   The following resource types have unique conditional states:
 #
 #   * Pods
-#     - default: state reports the desired number of containers are ready, eg. '1/1'.
+#     - default: state reports '1/1'
 #     - Completed: state reports 'Completed', used for jobs
 #   * PersistentVolumeClaims
 #     - default: state reports 'Bound'
@@ -354,9 +354,7 @@ check() {
           ;;
           *)
           status=$(echo "${line}" | awk '{print $2}')
-          pods_ready=$(cut -d '/' -f 1 <<< "${status}")
-          pods_desired=$(cut -d '/' -f 2 <<< "${status}")
-          if [[ "${pods_ready}" != "${pods_desired}" ]]; then
+          if [[ "${status}" != "1/1" ]]; then
             rc=1
           fi
           ;;
@@ -814,7 +812,7 @@ if [[ ${EXISTS_DEPLOY_HEKETI} -eq 1 ]] && [[ ${EXISTS_HEKETI} -eq 0 ]]; then
   fi
 
   heketi_pod=$(${CLI} get pod --no-headers --show-all --selector="deploy-heketi" | awk '{print $1}')
-  heketi_cli="${CLI} exec -i ${heketi_pod} -- heketi-cli -s http://localhost:8080 --user admin --secret '${ADMIN_KEY}'"
+  heketi_cli="${CLI} exec -i ${heketi_pod} -- heketi-cli -s http://localhost:8081 --user admin --secret '${ADMIN_KEY}'"
 
   load_temp=$(mktemp)
   eval_output "${heketi_cli} topology load --json=/etc/heketi/topology.json 2>&1" | tee "${load_temp}"
@@ -915,7 +913,7 @@ administrative commands you can install 'heketi-cli' and use it as follows:
 You can find it at https://github.com/heketi/heketi/releases . Alternatively,
 use it from within the heketi pod:
 
-  # ${CLI} exec -i <HEKETI_POD> -- heketi-cli -s http://localhost:8080 --user admin --secret '<ADMIN_KEY>' cluster list
+  # ${CLI} exec -i <HEKETI_POD> -- heketi-cli -s http://localhost:8081 --user admin --secret '<ADMIN_KEY>' cluster list
 
 For dynamic provisioning, create a StorageClass similar to this:
 
